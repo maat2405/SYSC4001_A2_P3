@@ -171,8 +171,46 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
             ///////////////////////////////////////////////////////////////////////////////////////////
             //Add your EXEC output here
-
-
+            // Get the size of the program from external_files
+            unsigned int program_size = get_size(program_name, external_files);
+            
+            if(program_size == (unsigned int)-1) {
+                std::cerr << "ERROR! Program " << program_name << " not found in external files!" << std::endl;
+                continue;
+            }
+            
+            // Display program size
+            execution += std::to_string(current_time) + ", " + std::to_string(duration_intr) + ", Program is " + std::to_string(program_size) + " Mb large\n";
+            current_time += duration_intr;
+            
+            // Simulate loading program into memory (15ms per Mb)
+            int load_time = program_size * 15;
+            execution += std::to_string(current_time) + ", " + std::to_string(load_time) + ", loading program into memory\n";
+            current_time += load_time;
+            
+            // Mark partition as occupied (3ms)
+            execution += std::to_string(current_time) + ", " + std::to_string(3) + ", marking partition as occupied\n";
+            current_time += 3;
+            
+            // Update PCB (6ms)
+            execution += std::to_string(current_time) + ", " + std::to_string(6) + ", updating PCB\n";
+            current_time += 6;
+            
+            // Free old memory
+            free_memory(&current);
+            
+            // Update current PCB with new program information
+            current.program_name = program_name;
+            current.size = program_size;
+            current.partition_number = -1;
+            
+            // Allocate new memory for the program
+            if(!allocate_memory(&current)) {
+                std::cerr << "ERROR! Memory allocation failed for program " << program_name << "!" << std::endl;
+            }
+            
+            // Scheduler called
+            execution += std::to_string(current_time) + ", " + std::to_string(0) + ", scheduler called\n";
 
             ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -188,7 +226,27 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             //With the exec's trace (i.e. trace of external program), run the exec (HINT: think recursion)
 
-
+            execution += std::to_string(current_time) + ", " + std::to_string(1) + ", IRET\n";
+            current_time++;
+            
+            // Log system status AFTER IRET
+            system_status += "time: " + std::to_string(current_time) + "; current trace: EXEC " + program_name + ", " + std::to_string(duration_intr) + "\n";
+            system_status += print_PCB(current, wait_queue);
+            
+            // Execute the new program recursively
+            auto [exec_exec, exec_status, exec_time] = simulate_trace(
+                exec_traces,
+                current_time,
+                vectors,
+                delays,
+                external_files,
+                current,
+                wait_queue
+            );
+            
+            execution += exec_exec;
+            system_status += exec_status;
+            current_time = exec_time;
 
             ///////////////////////////////////////////////////////////////////////////////////////////
 
