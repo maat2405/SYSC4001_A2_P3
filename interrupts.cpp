@@ -12,7 +12,11 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
     std::string trace;      //!< string to store single line of trace file
     std::string execution = "";  //!< string to accumulate the execution output
     std::string system_status = "";  //!< string to accumulate the system status output
+    int simulation_time = 0; // this is the total duration of the sim
+    const int context_time = 10; // context
+    const int isr_time = 200; // isr
     int current_time = time;
+    
 
     //parse each line of the input trace file. 'for' loop to keep track of indices.
     for(size_t i = 0; i < trace_file.size(); i++) {
@@ -20,29 +24,45 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
         auto [activity, duration_intr, program_name] = parse_trace(trace);
 
-        if(activity == "CPU") { //As per Assignment 1
-            execution += std::to_string(current_time) + ", " + std::to_string(duration_intr) + ", CPU Burst\n";
-            current_time += duration_intr;
-        } else if(activity == "SYSCALL") { //As per Assignment 1
-            auto [intr, time] = intr_boilerplate(current_time, duration_intr, 10, vectors);
-            execution += intr;
-            current_time = time;
+        if (activity == "CPU") {
+            execution += std::to_string(simulation_time) + ", " + std::to_string(duration_intr) + ", CPU Burst\n";
+            simulation_time += duration_intr;
+        }
 
-            execution += std::to_string(current_time) + ", " + std::to_string(delays[duration_intr]) + ", SYSCALL ISR (ADD STEPS HERE)\n";
-            current_time += delays[duration_intr];
+        else if (activity == "SYSCALL") {
+            auto [execution_temp, simulation_time_temp] = intr_boilerplate(simulation_time, duration_intr, context_time, vectors);
+            execution += execution_temp;
+            simulation_time = simulation_time_temp;
 
-            execution +=  std::to_string(current_time) + ", 1, IRET\n";
-            current_time += 1;
-        } else if(activity == "END_IO") {
-            auto [intr, time] = intr_boilerplate(current_time, duration_intr, 10, vectors);
-            current_time = time;
-            execution += intr;
+            execution += std::to_string(simulation_time) + ", " + std::to_string(delays[duration_intr]) + ", " + "SYSCALL: run the ISR for device " + std::to_string(duration_intr) + "\n";
+            simulation_time += delays[duration_intr];
 
-            execution += std::to_string(current_time) + ", " + std::to_string(delays[duration_intr]) + ", ENDIO ISR(ADD STEPS HERE)\n";
-            current_time += delays[duration_intr];
+            execution += std::to_string(simulation_time) + ", " + std::to_string(isr_time) + ", " + "transfer data from device to memory\n";
+            simulation_time += isr_time;
 
-            execution +=  std::to_string(current_time) + ", 1, IRET\n";
-            current_time += 1;
+            execution += std::to_string(simulation_time) + ", " + std::to_string(isr_time) + ", " + "check for errors\n";
+            simulation_time += isr_time;
+
+            execution += std::to_string(simulation_time) + ", " + std::to_string(1) + ", " + "IRET\n";
+            simulation_time++;
+
+        }
+
+        else if (activity == "END_IO") {
+            auto [execution_temp, simulation_time_temp] = intr_boilerplate(simulation_time, duration_intr, context_time, vectors);
+            execution += execution_temp;
+            simulation_time = simulation_time_temp;
+
+            execution += std::to_string(simulation_time) + ", " + std::to_string(delays[duration_intr]) + ", " + "END I/O\n";
+            simulation_time += delays[duration_intr];
+
+            execution += std::to_string(simulation_time) + ", " + std::to_string(1) + ", " + "IRET\n";
+            simulation_time++;
+        }
+
+        else if (activity == "UNKOWN_ACTIVITY") {
+            execution += std::to_string(simulation_time) + ", " + std::to_string(1) + ", " + "Unknown Activity\n";
+            simulation_time++;
         } else if(activity == "FORK") {
             auto [intr, time] = intr_boilerplate(current_time, 2, 10, vectors);
             execution += intr;
