@@ -2,11 +2,14 @@
  *
  * @file interrupts.cpp
  * @author Sasisekhar Govind
+ * 
+ * 
  *
  */
 
 #include<interrupts.hpp>
 
+static unsigned int next_pid = 1;
 std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string> trace_file, int time, std::vector<std::string> vectors, std::vector<int> delays, std::vector<external_file> external_files, PCB current, std::vector<PCB> wait_queue) {
 
     std::string trace;      //!< string to store single line of trace file
@@ -71,6 +74,23 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             //Add your FORK output here
 
+            // Clone the PCB for the child process
+            execution += std::to_string(current_time) + ", " + std::to_string(duration_intr) + ", cloning the PCB\n";
+            current_time += duration_intr;
+            
+            // Create child PCB (clone from current, assign new PID)
+            PCB child(next_pid++, current.PID, current.program_name, current.size, -1);
+            
+            // Allocate memory for child
+            if(!allocate_memory(&child)) {
+                std::cerr << "ERROR! Memory allocation failed for child process!" << std::endl;
+            }
+            
+            // Add parent to wait queue
+            wait_queue.push_back(current);
+            
+            // Scheduler called
+            execution += std::to_string(current_time) + ", " + std::to_string(0) + ", scheduler called\n";
 
 
             ///////////////////////////////////////////////////////////////////////////////////////////
