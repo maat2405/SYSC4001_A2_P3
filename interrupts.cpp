@@ -131,8 +131,35 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
             ///////////////////////////////////////////////////////////////////////////////////////////
             //With the child's trace, run the child (HINT: think recursion)
-
-
+            execution += std::to_string(current_time) + ", " + std::to_string(1) + ", IRET\n";
+            current_time++;
+            
+            // Log system status AFTER IRET
+            system_status += "time: " + std::to_string(current_time) + "; current trace: FORK, " + std::to_string(duration_intr) + "\n";
+            system_status += print_PCB(child, wait_queue);
+            
+            // Execute child process recursively (parent remains in wait_queue)
+            auto [child_exec, child_status, child_time] = simulate_trace(
+                child_trace, 
+                current_time, 
+                vectors, 
+                delays, 
+                external_files, 
+                child, 
+                wait_queue // Pass wait_queue with parent in it
+            );
+            
+            execution += child_exec;
+            system_status += child_status;
+            current_time = child_time;
+            
+            // Free child's memory after completion
+            free_memory(&child);
+            
+            // Remove parent from wait queue (it's about to run)
+            if(!wait_queue.empty()) {
+                wait_queue.erase(wait_queue.begin());
+            }
 
             ///////////////////////////////////////////////////////////////////////////////////////////
 
