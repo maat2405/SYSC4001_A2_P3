@@ -2,8 +2,8 @@
  *
  * @file interrupts.cpp
  * @author Sasisekhar Govind
- * 
- * 
+ * @author Maathusan Sathiendran 101302780
+ * @author Sonai Haghgooie 101306866
  *
  */
 
