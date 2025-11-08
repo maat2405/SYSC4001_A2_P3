@@ -1,2 +1,2 @@
-EXEC program8, 25
+EXEC program1, 25
 CPU, 5

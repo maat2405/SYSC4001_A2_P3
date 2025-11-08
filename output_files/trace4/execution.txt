@@ -9,5 +9,27 @@
 27, 10, context saved
 37, 1, find vector 3 in memory position 0x0006
 38, 1, load address 0X042B into the PC
-39, 30, CPU Burst
-69, 40, CPU Burst
+39, 20, Program is 10 Mb large
+59, 150, loading program into memory
+209, 3, marking partition as occupied
+212, 6, updating PCB
+218, 0, scheduler called
+218, 1, IRET
+219, 50, CPU Burst
+269, 1, switch to kernel mode
+270, 10, context saved
+280, 1, find vector 6 in memory position 0x000C
+281, 1, load address 0X0639 into the PC
+282, 265, SYSCALL: run the ISR for device 6
+547, 200, transfer data from device to memory
+747, 200, check for errors
+947, 1, IRET
+948, 15, CPU Burst
+963, 1, switch to kernel mode
+964, 10, context saved
+974, 1, find vector 6 in memory position 0x000C
+975, 1, load address 0X0639 into the PC
+976, 265, END I/O
+1241, 1, IRET
+1242, 30, CPU Burst
+1272, 40, CPU Burst
