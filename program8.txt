@@ -1,0 +1,7 @@
+FORK, 10
+IF_CHILD, 0
+CPU, 15
+IF_PARENT, 0
+EXEC program9, 30
+ENDIF, 0
+CPU, 5
