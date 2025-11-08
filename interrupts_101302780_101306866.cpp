@@ -40,18 +40,19 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
             execution += std::to_string(current_time) + ", " + std::to_string(delays[duration_intr]) + ", " + "SYSCALL: run the ISR for device " + std::to_string(duration_intr) + "\n";
             current_time += delays[duration_intr];
-
+            // Transferring data from the call to system memory
             execution += std::to_string(current_time) + ", " + std::to_string(isr_time) + ", " + "transfer data from device to memory\n";
             current_time += isr_time;
-
+            // Check for invalid parameters
             execution += std::to_string(current_time) + ", " + std::to_string(isr_time) + ", " + "check for errors\n";
             current_time += isr_time;
-
+            // Interrupt return to main execution
             execution += std::to_string(current_time) + ", " + std::to_string(1) + ", " + "IRET\n";
             current_time++;
 
         }
 
+        // End of I/O execution
         else if (activity == "END_IO") {
             auto [execution_temp, simulation_time_temp] = intr_boilerplate(current_time, duration_intr, context_time, vectors);
             execution += execution_temp;
@@ -63,7 +64,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             execution += std::to_string(current_time) + ", " + std::to_string(1) + ", " + "IRET\n";
             current_time++;
         }
-
+        // Handling other unkown cases
         else if (activity == "UNKOWN_ACTIVITY") {
             execution += std::to_string(current_time) + ", " + std::to_string(1) + ", " + "Unknown Activity\n";
             current_time++;
